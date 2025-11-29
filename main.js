@@ -9,7 +9,19 @@ async function initWasm() {
   }
 
   const bytes = await resp.arrayBuffer();
-  const { instance } = await WebAssembly.instantiate(bytes, {});
+
+  // Rust 側が import している env.notify_result をここで実装する
+  const importObject = {
+    env: {
+      notify_result: (x) => {
+        const logSpan = document.getElementById("log");
+        logSpan.textContent = `notify_result(${x}) が Rust から呼ばれました`;
+        console.log("notify_result from Rust:", x);
+      },
+    },
+  };
+
+  const { instance } = await WebAssembly.instantiate(bytes, importObject);
   wasmInstance = instance;
   console.log("Wasm loaded");
 }
@@ -29,14 +41,15 @@ function setupUI() {
     const a = Number(inputA.value);
     const b = Number(inputB.value);
 
-    // NaN 対策
     if (Number.isNaN(a) || Number.isNaN(b)) {
       resultSpan.textContent = "数値を入力してください";
       return;
     }
 
-    // Rust の add(a, b) を呼び出し
-    const sum = wasmInstance.exports.add(a, b);
+    // Rust の add_and_notify(a, b) を呼ぶ
+    const sum = wasmInstance.exports.add_and_notify(a, b);
+
+    // 戻り値を結果表示に出す
     resultSpan.textContent = String(sum);
   });
 }

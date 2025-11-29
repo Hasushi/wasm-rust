@@ -1,12 +1,11 @@
-<!-- index.html -->
 <!doctype html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <title>Rust Wasm Add Demo</title>
+    <title>Rust Wasm 双方向デモ</title>
   </head>
   <body>
-    <h1>Rust Wasm Add Demo</h1>
+    <h1>Rust Wasm 双方向デモ</h1>
 
     <label>
       A:
@@ -21,6 +20,8 @@
     <button id="calc-btn">Wasm で計算</button>
 
     <p>結果: <span id="result">-</span></p>
+
+    <p>Rust → JS の通知: <span id="log">（まだなし）</span></p>
 
     <script type="module" src="./main.js"></script>
   </body>
