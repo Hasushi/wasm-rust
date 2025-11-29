@@ -2,10 +2,10 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <title>Rust Wasm 双方向デモ</title>
+    <title>wasm-bindgen 双方向デモ</title>
   </head>
   <body>
-    <h1>Rust Wasm 双方向デモ</h1>
+    <h1>wasm-bindgen 双方向デモ</h1>
 
     <label>
       A:
@@ -19,8 +19,7 @@
     <br />
     <button id="calc-btn">Wasm で計算</button>
 
-    <p>結果: <span id="result">-</span></p>
-
+    <p>結果（戻り値）: <span id="result">-</span></p>
     <p>Rust → JS の通知: <span id="log">（まだなし）</span></p>
 
     <script type="module" src="./main.js"></script>

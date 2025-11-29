@@ -1,43 +1,24 @@
-// main.js
+// wasm-pack build --target web で生成された JS ラッパを読み込む
+import init, { add_and_notify } from "./pkg/wasm_rust.js";
 
-let wasmInstance = null;
+async function main() {
+  // wasm と JS ランタイムの初期化
+  await init();
 
-async function initWasm() {
-  const resp = await fetch("./wasm_add.wasm");
-  if (!resp.ok) {
-    throw new Error(`failed to fetch wasm: ${resp.status} ${resp.statusText}`);
-  }
-
-  const bytes = await resp.arrayBuffer();
-
-  // Rust 側が import している env.notify_result をここで実装する
-  const importObject = {
-    env: {
-      notify_result: (x) => {
-        const logSpan = document.getElementById("log");
-        logSpan.textContent = `notify_result(${x}) が Rust から呼ばれました`;
-        console.log("notify_result from Rust:", x);
-      },
-    },
-  };
-
-  const { instance } = await WebAssembly.instantiate(bytes, importObject);
-  wasmInstance = instance;
-  console.log("Wasm loaded");
-}
-
-function setupUI() {
   const inputA = document.getElementById("input-a");
   const inputB = document.getElementById("input-b");
   const button = document.getElementById("calc-btn");
   const resultSpan = document.getElementById("result");
+  const logSpan = document.getElementById("log");
+
+  // Rust から import される関数 notifyResult をグローバルに定義
+  // （#[wasm_bindgen(js_name = notifyResult)] と対応）
+  window.notifyResult = (x) => {
+    logSpan.textContent = `notifyResult(${x}) が Rust から呼ばれました`;
+    console.log("notifyResult from Rust:", x);
+  };
 
   button.addEventListener("click", () => {
-    if (!wasmInstance) {
-      alert("Wasm がまだ読み込み中です…");
-      return;
-    }
-
     const a = Number(inputA.value);
     const b = Number(inputB.value);
 
@@ -46,17 +27,14 @@ function setupUI() {
       return;
     }
 
-    // Rust の add_and_notify(a, b) を呼ぶ
-    const sum = wasmInstance.exports.add_and_notify(a, b);
+    // Rust の add_and_notify を呼ぶ
+    const sum = add_and_notify(a, b);
 
-    // 戻り値を結果表示に出す
+    // 戻り値も画面に出す
     resultSpan.textContent = String(sum);
   });
 }
 
-initWasm().catch((e) => {
-  console.error(e);
-  alert("Wasm の初期化に失敗しました。コンソールを確認してください。");
+main().catch((e) => {
+  console.error("init error:", e);
 });
-
-setupUI();
